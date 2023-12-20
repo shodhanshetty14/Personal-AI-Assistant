@@ -16,11 +16,12 @@ url = "https://bard.google.com/chat"
 def get_cookies():
     print("get_cookies")
     webbrowser.open(url)
-    sleep(5)
+    sleep(10)
 
     pyautogui.click(x=1679, y=98)  # cookie_button = Point(x=1679, y=98)
-    sleep(3)
-    pyautogui.click(x=1469, y=121)  # Export button = Point(x=1469, y=121)
+    sleep(10)
+    pyautogui.click(x=1469, y=121) # Export button = Point(x=1469, y=121)
+    sleep(5)
     keyboard.press_and_release('ctrl + w')
 
     cookies = json.loads(pyperclip.paste())
