@@ -5,8 +5,10 @@ import wikipedia
 import webbrowser
 from BardAI import Bard
 import pickle
-import random
 import logging
+from Message import WhatsApp
+from calander import CreateEvents, ReadEvents
+from datetime import datetime, timezone
 
 logging.basicConfig(filename='./logs/error.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s')
 
@@ -213,7 +215,6 @@ def time():
         post_fix = 'PM'
     minute = datetime.now().minute
     speak(f"The time is {hour} hours and {minute} minutes {post_fix}")
-    # make it to 12 hour format and add AM and PM
 
 
 def voiceCommand():
@@ -234,6 +235,63 @@ def voiceCommand():
             return 'None'
         return q
 
+
+def ConnectBard():
+    speak("What should i save the file as?")
+    name = voiceCommand().lower()
+    speak(Bard(command,name))
+
+
+def SendMessage():
+    speak("What should the message be?")
+    message = voiceCommand().lower()
+    if "input" in message:
+        message = input("Enter the message: ")
+    print(f"Shodhan : {message}")
+    speak("To whom would you like me to send this message ?")
+    name = voiceCommand().lower()
+    if "input" in message or "input" in name:
+        name = input("Enter the name: ")
+    print(f"Shodhan : {name}")
+    WhatsApp(name, message)
+    speak("Message sent successfully!")
+    
+
+def Remainder(command):
+    if 'display' in command or "display" in command:
+        events = ReadEvents()
+        if "No upcomming Events" == events:
+            speak("No upcomming Events")
+        elif "Error" in events or "error" in events:
+            speak("Error Occured try again. If the Error Still Persists then Consider checking error logs.")
+        for event in events:
+            speak(f" {event['summary']}")
+    
+    elif 'create' in command or "add" in command:
+        speak("For creating an event, I would need some details, Kindly Enter the details")
+        
+        stDate = input("Enter the Start Date in the format DD-MM-YYYY: ").split('-')
+        endDate = input("Enter the End Date in the format DD-MM-YYYY: ").split('-')
+        summary = input("Enter the Summary of the Event: ")
+        des = input("Enter the Description of the Event or press enter to skip (optional): ")
+        attend = input("Enter the Attendees of the Event in a single line with ',' or press enter to skip (optional): ").split(',')
+        
+        start_time = datetime(int(stDate[2]), int(stDate[1]), int(stDate[0]), tzinfo=timezone.utc).isoformat()
+        end_time = datetime(int(endDate[2]), int(endDate[1]), int(endDate[0]), tzinfo=timezone.utc).isoformat()
+        event_summary = summary 
+        description = des
+        if attend == ['']:
+            attend = []
+        attendees = attend
+        
+        events = CreateEvents(start_time, end_time, event_summary, event_description=description, attendees=attendees)
+        
+        if "Error" in events or "error" in events:
+            speak("Error Occured try again. If the Error Still Persists then Consider checking error logs.")
+        else:
+            speak(f"{events['summary']}, Event Created Successfully")
+            print(f"AI: event created Successfully: \n\tEvent Summary: {events['summary']}\n\tStart Time: {events['start']['dateTime']}\n\tEnd Time: {events['end']['dateTime']}\n\tDescription: {events.get('description')}\n\tAttendees: {events.get('attendees')}\n\tEvent Link: {events.get('htmlLink')}\n")
+        
 
 def PlayMusic():
     pass
@@ -262,19 +320,19 @@ if __name__ == '__main__':
 
         if 'wikipedia' in command:
             Wiki(command)
-
         elif 'open' in command:
             OpenBrowser(command)
-
         elif "time" in command:
             time()
         elif "search" in command:
             speak(Bard(command))
         elif "code" in command:
-            speak("What should i save the file as?")
-            name = voiceCommand().lower()
-            speak(Bard(command,name))
+            ConnectBard()
+        elif "send" in command or "message" in command or 'whatsapp' in command:
+            SendMessage()
         elif "play music" in command:
             PlayMusic()
+        elif "remainder" in command or "reminders" in command or "events" in command or "event" in command:
+            Remainder(command)
 
-# Need to complete the PlayMusic, PlayMovie & time Function and make some change in the structuring
+# Need to complete the PlayMusic, PlayMovie 
